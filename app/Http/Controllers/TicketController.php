@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Ticket;
-use Illuminate\Http\Request;
-use App\Models\TicketStatus;
-use App\Models\Comment;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Database\Eloquent\Builder;
-use App\Http\Controllers\Traits\ManagesTicketSorting;
+use App\Models\Ticket;
+use App\Models\Vendor;
+use App\Models\Comment;
 use App\Models\Category;
 use App\Models\Department;
-use App\Models\Vendor;
+use App\Models\TicketStatus;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Database\Eloquent\Builder;
+use App\Http\Controllers\Traits\ManagesTicketSorting;
 
 class TicketController extends Controller
 {
@@ -20,7 +21,8 @@ class TicketController extends Controller
 
     public function index()
     {
-        $this->authorize('viewAny', Ticket::class);
+        Gate::authorize('viewAny', Ticket::class);
+        
         $userType = Auth::user()->user_type ?? null;
         if ($userType === 'user') {
             return redirect()->route('tickets.mine');
@@ -40,7 +42,7 @@ class TicketController extends Controller
 
     public function show(Request $request, Ticket $ticket)
     {
-        $this->authorize('view', $ticket);
+        Gate::authorize('view', $ticket);
         $ticket->load(['comments.user', 'status', 'category', 'assignees']);
         $statuses = TicketStatus::orderBy('name')->pluck('name', 'id');
         // Only users with user_type 'it' or 'vendor' for assignee selection
@@ -50,7 +52,7 @@ class TicketController extends Controller
 
     public function updateStatus(Request $request, Ticket $ticket)
     {
-        $this->authorize('updateStatus', $ticket);
+        Gate::authorize('updateStatus', $ticket);
         $request->validate([
             'ticket_status_id' => 'required|exists:ticket_statuses,id',
         ]);
@@ -63,7 +65,7 @@ class TicketController extends Controller
 
     public function addComment(Request $request, Ticket $ticket)
     {
-        $this->authorize('addComment', $ticket);
+        Gate::authorize('addComment', $ticket);
         $request->validate([
             'comment' => 'required|string',
         ]);
@@ -80,7 +82,7 @@ class TicketController extends Controller
 
     public function addAssignee(Request $request, Ticket $ticket)
     {
-        $this->authorize('assignUser', $ticket);
+        Gate::authorize('assignUser', $ticket);
         $request->validate([
             'user_id' => [
                 'required',
@@ -99,7 +101,7 @@ class TicketController extends Controller
 
     public function removeAssignee(Ticket $ticket, $userId)
     {
-        $this->authorize('assignUser', $ticket);
+        Gate::authorize('assignUser', $ticket);
         $ticket->assignees()->detach($userId);
         return redirect()->route('tickets.show', $ticket)->with('success', 'Assignee removed.');
     }
@@ -132,7 +134,7 @@ class TicketController extends Controller
 
     public function create()
     {
-        $this->authorize('create', Ticket::class);
+        Gate::authorize('create', Ticket::class);
         $categories = Category::orderBy('name')->pluck('name', 'id');
         $departments = Department::orderBy('name')->pluck('name', 'id');
         $vendors = Vendor::orderBy('name')->pluck('name', 'id');
@@ -142,7 +144,7 @@ class TicketController extends Controller
 
     public function store(Request $request)
     {
-        $this->authorize('create', Ticket::class);
+        Gate::authorize('create', Ticket::class);
         $data = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -161,7 +163,7 @@ class TicketController extends Controller
             'category_id' => 'required|exists:categories,id',
         ]);
         $ticket = Ticket::findOrFail($ticketId);
-        $this->authorize('updateCategory', $ticket);
+        Gate::authorize('updateCategory', $ticket);
         $ticket->category_id = $request->category_id;
         $ticket->save();
 
