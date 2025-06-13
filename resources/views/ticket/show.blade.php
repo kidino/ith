@@ -149,9 +149,9 @@
                                     <div class="font-semibold text-gray-700 mb-2">Update Status</div>
                                     <div class="relative w-full">
                                         <select name="ticket_status_id" id="ticket_status_id" class="text-xs rounded border-gray-300">
-                                            @foreach($statuses as $status)
-                                                <option value="{{ $status->id }}" @if($ticket->ticket_status_id == $status->id) selected @endif>
-                                                    {{ $status->name }}
+                                            @foreach($statuses as $id => $status)
+                                                <option value="{{ $id }}" @if($ticket->ticket_status_id == $id) selected @endif>
+                                                    {{ $status }}
                                                 </option>
                                             @endforeach
                                         </select>

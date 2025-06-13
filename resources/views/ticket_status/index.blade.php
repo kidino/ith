@@ -50,7 +50,6 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-2">
-                                    <a href="{{ route('ticket-statuses.show', $status) }}" class="text-blue-600 hover:underline text-xs">View</a>
                                     <a href="{{ route('ticket-statuses.edit', $status) }}" class="text-yellow-600 hover:underline text-xs ml-2">Edit</a>
                                     <form action="{{ route('ticket-statuses.destroy', $status) }}" method="POST" class="inline ml-2" onsubmit="return confirm('Delete this status?')">
                                         @csrf
