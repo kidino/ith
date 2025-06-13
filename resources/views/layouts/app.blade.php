@@ -27,6 +27,20 @@
                 </header>
             @endisset
 
+            <!-- Success Alert -->
+            @if(session('success'))
+                <div x-data="{ show: true }" x-show="show" class="max-w-6xl mx-auto mt-6">
+                    <div class="flex items-center justify-between bg-green-100 border border-green-300 text-green-800 px-4 py-3 rounded shadow">
+                        <span>{{ session('success') }}</span>
+                        <button type="button" class="ml-4 text-green-700 hover:text-green-900" @click="show = false">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            @endif
+
             <!-- Page Content -->
             <main>
                 {{ $slot }}

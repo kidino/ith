@@ -9,7 +9,7 @@ class TicketStatus extends Model
 {
     protected $table = 'ticket_statuses';
 
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'color'];
 
     public function tickets(): HasMany
     {
