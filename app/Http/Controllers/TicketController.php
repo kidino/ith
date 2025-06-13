@@ -22,7 +22,6 @@ class TicketController extends Controller
 
     public function index()
     {
-        Gate::authorize('viewAny', Ticket::class);
         $userType = Auth::user()->user_type ?? null;
         if ($userType === 'user') {
             return redirect()->route('tickets.mine');
@@ -30,6 +29,8 @@ class TicketController extends Controller
         if ($userType === 'vendor') {
             return redirect()->route('tickets.tasks');
         }
+
+        Gate::authorize('viewAny', Ticket::class);
 
         $tickets = Ticket::with(['status', 'category', 'user.department', 'assignees']);
         $tickets->filterByStatus(request('status'))
