@@ -47,9 +47,11 @@
                                     </a>
                                 @endif
                             </nav>
-                            <a href="{{ route('tickets.create') }}" class="ml-auto inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded shadow-sm hover:bg-blue-700 text-sm font-semibold">
-                                + New Ticket
-                            </a>
+                            @if($userType !== 'vendor')
+                                <a href="{{ route('tickets.create') }}" class="ml-auto inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded shadow-sm hover:bg-blue-700 text-sm font-semibold">
+                                    + New Ticket
+                                </a>
+                            @endif
                         </div>
                     </div>
 

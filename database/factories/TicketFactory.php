@@ -19,7 +19,7 @@ class TicketFactory extends Factory
         return [
             'title' => fake()->sentence(6),
             'description' => fake()->paragraph,
-            'user_id' => User::inRandomOrder()->value('id'),
+            'user_id' => User::whereIn('user_type', ['admin', 'it', 'user'])->inRandomOrder()->value('id'),
             'category_id' => Category::inRandomOrder()->value('id'),
             'ticket_status_id' => TicketStatus::inRandomOrder()->value('id'),
         ];
