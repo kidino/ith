@@ -6,11 +6,15 @@ use App\Models\Ticket;
 use App\Models\Category;
 use App\Models\TicketStatus;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class DashboardController extends Controller
 {
     public function __invoke()
     {
+
+        Gate::authorize('viewAny', Ticket::class);
+
         $categoryCounts = Category::select('categories.name')
             ->leftJoin('tickets', 'tickets.category_id', '=', 'categories.id')
             ->groupBy('categories.id', 'categories.name')

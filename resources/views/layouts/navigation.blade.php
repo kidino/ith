@@ -12,15 +12,21 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
+                    @php
+                        $userType = Auth::user()->user_type ?? null;
+                    @endphp
+
+                    @if($userType !== 'user' && $userType !== 'vendor')
+                        <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                            {{ __('Dashboard') }}
+                        </x-nav-link>
+                    @endif
 
                     <x-nav-link :href="route('tickets.index')" :active="request()->routeIs('tickets*')">
                         {{ __('Tickets') }}
                     </x-nav-link>
 
-                    @if(Auth::user() && Auth::user()->user_type === 'admin')
+                    @if($userType === 'admin')
                     <div class="hidden sm:flex sm:items-center sm:ms-6">
                         <x-dropdown align="left">
                             <x-slot name="trigger">
