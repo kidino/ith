@@ -71,7 +71,6 @@ These features are **not** yet developed
 
 - This project is mostly developed using **GitHub Copilot** to demonstrate AI-assisted software development and for learning purposes.
 - The codebase is intended for educational use and as a reference for building Laravel-based systems.
-- This is based on Laravel Breeze. No Livewire. No Apline. No fancy stuffs.
 
 ## License
 

@@ -83,9 +83,9 @@
                                     @method('PATCH')
                                     <label for="category_id" class="font-semibold text-gray-700">Category:</label>
                                     <select name="category_id" id="category_id" class="rounded border-gray-300 text-xs" onchange="this.form.submit()">
-                                        @foreach(\App\Models\Category::all() as $category)
-                                            <option value="{{ $category->id }}" @if($ticket->category_id == $category->id) selected @endif>
-                                                {{ $category->name }}
+                                        @foreach($viewCategories as $id => $name)
+                                            <option value="{{ $id }}" @if($ticket->category_id == $id) selected @endif>
+                                                {{ $name }}
                                             </option>
                                         @endforeach
                                     </select>

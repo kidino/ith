@@ -2,18 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Models\Ticket;
-use App\Models\Vendor;
-use App\Models\Comment;
-use App\Models\Category;
-use App\Models\Department;
-use App\Models\TicketStatus;
 use Illuminate\Http\Request;
+use App\Models\TicketStatus;
+use App\Models\Comment;
+use App\Models\User;
+use App\Rules\ValidAssignee;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Database\Eloquent\Builder;
 use App\Http\Controllers\Traits\ManagesTicketSorting;
+use App\Models\Category;
+use App\Models\Department;
+use App\Models\Vendor;
 
 class TicketController extends Controller
 {
@@ -22,7 +23,6 @@ class TicketController extends Controller
     public function index()
     {
         Gate::authorize('viewAny', Ticket::class);
-        
         $userType = Auth::user()->user_type ?? null;
         if ($userType === 'user') {
             return redirect()->route('tickets.mine');
@@ -37,17 +37,28 @@ class TicketController extends Controller
         $this->applySorting($tickets);
         $tickets = $tickets->paginate(10)->withQueryString();
         $activeTab = 'all';
-        return view('ticket.index', compact('tickets', 'activeTab'));
+        $viewStatuses = TicketStatus::orderBy('name')->pluck('name', 'id');
+        $viewCategories = Category::orderBy('name')->pluck('name', 'id');
+        return view('ticket.index', compact('tickets', 'activeTab', 'viewStatuses', 'viewCategories'));
     }
 
     public function show(Request $request, Ticket $ticket)
     {
         Gate::authorize('view', $ticket);
-        $ticket->load(['comments.user', 'status', 'category', 'assignees']);
+        $ticket->load([
+            'comments.user', // Existing
+            'status',        // Existing
+            'category',      // Existing
+            'assignees' => function ($query) { // Modified to include vendor for assignees
+                $query->with('vendor');
+            },
+            'user.department' // Added to load ticket's user and their department
+        ]);
         $statuses = TicketStatus::orderBy('name')->pluck('name', 'id');
         // Only users with user_type 'it' or 'vendor' for assignee selection
         $assigneeCandidates = User::whereIn('user_type', ['it', 'vendor'])->orderBy('name')->pluck('name', 'id');
-        return view('ticket.show', compact('ticket', 'statuses', 'assigneeCandidates'));
+        $viewCategories = Category::orderBy('name')->pluck('name', 'id');
+        return view('ticket.show', compact('ticket', 'statuses', 'assigneeCandidates', 'viewCategories'));
     }
 
     public function updateStatus(Request $request, Ticket $ticket)
@@ -86,13 +97,8 @@ class TicketController extends Controller
         $request->validate([
             'user_id' => [
                 'required',
-                'exists:users,id',
-                function ($attribute, $value, $fail) {
-                    $user = User::find($value);
-                    if (!$user || !in_array($user->user_type, ['it', 'vendor'])) {
-                        $fail('The selected user is not eligible to be an assignee.');
-                    }
-                }
+                'exists:users,id', // Keep this to ensure user exists before our rule runs
+                new ValidAssignee, // Use the new custom rule
             ],
         ]);
         $ticket->assignees()->syncWithoutDetaching([$request->user_id]);
@@ -115,7 +121,9 @@ class TicketController extends Controller
         $this->applySorting($tickets);
         $tickets = $tickets->paginate(10)->withQueryString();
         $activeTab = 'my';
-        return view('ticket.index', compact('tickets', 'activeTab'));
+        $viewStatuses = TicketStatus::orderBy('name')->pluck('name', 'id');
+        $viewCategories = Category::orderBy('name')->pluck('name', 'id');
+        return view('ticket.index', compact('tickets', 'activeTab', 'viewStatuses', 'viewCategories'));
     }
 
     public function myTasks()
@@ -129,7 +137,9 @@ class TicketController extends Controller
         $this->applySorting($tickets);
         $tickets = $tickets->paginate(10)->withQueryString();
         $activeTab = 'tasks';
-        return view('ticket.index', compact('tickets', 'activeTab'));
+        $viewStatuses = TicketStatus::orderBy('name')->pluck('name', 'id');
+        $viewCategories = Category::orderBy('name')->pluck('name', 'id');
+        return view('ticket.index', compact('tickets', 'activeTab', 'viewStatuses', 'viewCategories'));
     }
 
     public function create()

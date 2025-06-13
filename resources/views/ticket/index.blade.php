@@ -55,8 +55,6 @@
 
                     {{-- Status & Category Filter Dropdowns --}}
                     @php
-                        $statuses = \App\Models\TicketStatus::all();
-                        $categories = \App\Models\Category::all();
                         $selectedStatus = request('status');
                         $selectedCategory = request('category');
                     @endphp
@@ -69,9 +67,9 @@
                             <label for="status" class="mr-2 text-xs font-medium text-gray-700">Status:</label>
                             <select name="status" id="status" class="rounded border-gray-300 text-xs py-1 px-2" onchange="this.form.submit()">
                                 <option value="">All</option>
-                                @foreach($statuses as $status)
-                                    <option value="{{ $status->id }}" @if($selectedStatus == $status->id) selected @endif>
-                                        {{ $status->name }}
+                                @foreach($viewStatuses as $id => $name)
+                                    <option value="{{ $id }}" @if($selectedStatus == $id) selected @endif>
+                                        {{ $name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -80,9 +78,9 @@
                             <label for="category" class="mr-2 text-xs font-medium text-gray-700">Category:</label>
                             <select name="category" id="category" class="rounded border-gray-300 text-xs py-1 px-2" onchange="this.form.submit()">
                                 <option value="">All</option>
-                                @foreach($categories as $category)
-                                    <option value="{{ $category->id }}" @if($selectedCategory == $category->id) selected @endif>
-                                        {{ $category->name }}
+                                @foreach($viewCategories as $id => $name)
+                                    <option value="{{ $id }}" @if($selectedCategory == $id) selected @endif>
+                                        {{ $name }}
                                     </option>
                                 @endforeach
                             </select>
