@@ -181,7 +181,12 @@
                                     <td class="px-4 py-2">{{ $ticket->user->department?->name }}</td>
                                     <td class="px-4 py-2">
                                         @foreach($ticket->assignees as $assignee)
-                                            <span class="inline-block bg-gray-200 rounded px-2 py-1 text-xs text-gray-700 mr-1 mb-1">{{ $assignee->name }}</span>
+                                            @php
+                                                $badgeClass = $assignee->user_type === 'vendor'
+                                                    ? 'bg-blue-100 text-blue-800'
+                                                    : 'bg-gray-200 text-gray-700';
+                                            @endphp
+                                            <span class="inline-block {{ $badgeClass }} rounded px-2 py-1 text-xs mr-1 mb-1">{{ $assignee->name }}</span>
                                         @endforeach
                                     </td>
                                     <td class="px-4 py-2">
