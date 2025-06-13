@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Policies\TicketPolicy;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -26,16 +27,6 @@ class Ticket extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function vendor(): BelongsTo
-    {
-        return $this->belongsTo(Vendor::class);
-    }
-
-    public function department(): BelongsTo
-    {
-        return $this->belongsTo(Department::class);
-    }
-
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
@@ -54,5 +45,35 @@ class Ticket extends Model
     public function assignees(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'ticket_user');
+    }
+
+    /**
+     * Scope a query to only include tickets of a given status.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  mixed  $statusId
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeFilterByStatus($query, $statusId)
+    {
+        if ($statusId) {
+            return $query->where('ticket_status_id', $statusId);
+        }
+        return $query;
+    }
+
+    /**
+     * Scope a query to only include tickets of a given category.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  mixed  $categoryId
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeFilterByCategory($query, $categoryId)
+    {
+        if ($categoryId) {
+            return $query->where('category_id', $categoryId);
+        }
+        return $query;
     }
 }

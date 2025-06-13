@@ -22,9 +22,9 @@
                             <label class="block font-semibold mb-1">Category</label>
                             <select name="category_id" class="w-full rounded border-gray-300">
                                 <option value="">-- Select Category --</option>
-                                @foreach($categories as $category)
-                                    <option value="{{ $category->id }}" @if(old('category_id') == $category->id) selected @endif>
-                                        {{ $category->name }}
+                                @foreach($categories as $id => $category)
+                                    <option value="{{ $id }}" @if(old('category_id') == $id) selected @endif>
+                                        {{ $category }}
                                     </option>
                                 @endforeach
                             </select>
