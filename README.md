@@ -3,6 +3,10 @@
 This is a ticketing/helpdesk system built with [Laravel](https://laravel.com/).  
 It is designed for IT, user, and vendor collaboration, with role-based access and management for tickets, users, departments, vendors, categories, and ticket statuses.
 
+![ITH Ticketing System Screenshot](ith-screenshot.jpg)
+
+![Additional Screenshot](ith-screenshot2.png)
+
 ## Features
 
 - Ticket creation, assignment, and status tracking
