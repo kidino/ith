@@ -8,12 +8,6 @@ use Illuminate\Support\Facades\Auth;
 
 class CategoryController extends Controller
 {
-    public function __construct()
-    {
-        if (!Auth::user() || Auth::user()->user_type !== 'admin') {
-            abort(403, 'Unauthorized');
-        }
-    }
 
     public function index()
     {

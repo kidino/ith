@@ -74,7 +74,7 @@ class TicketController extends Controller
         return view('ticket.index', compact('tickets', 'activeTab'));
     }
 
-    public function show(Ticket $ticket)
+    public function show(Request $request, Ticket $ticket)
     {
         $ticket->load(['comments.user', 'status', 'category', 'assignees']);
         $statuses = TicketStatus::all();
@@ -83,26 +83,24 @@ class TicketController extends Controller
         return view('ticket.show', compact('ticket', 'statuses', 'assigneeCandidates'));
     }
 
-    public function updateStatus(Request $request, $ticketId)
+    public function updateStatus(Request $request, Ticket $ticket)
     {
         $request->validate([
             'ticket_status_id' => 'required|exists:ticket_statuses,id',
         ]);
 
-        $ticket = Ticket::findOrFail($ticketId);
         $ticket->ticket_status_id = $request->ticket_status_id;
         $ticket->save();
 
         return redirect()->route('tickets.show', $ticket)->with('success', 'Status updated.');
     }
 
-    public function addComment(Request $request, $ticketId)
+    public function addComment(Request $request, Ticket $ticket)
     {
         $request->validate([
             'comment' => 'required|string',
         ]);
 
-        $ticket = Ticket::findOrFail($ticketId);
         $ticket->comments()->create([
             'user_id' => auth()->id(),
             'comment' => $request->comment,
@@ -113,28 +111,26 @@ class TicketController extends Controller
 
     }
 
-    public function addAssignee(Request $request, $ticketId)
+    public function addAssignee(Request $request, Ticket $ticket)
     {
         $request->validate([
             'user_id' => [
                 'required',
                 'exists:users,id',
                 function ($attribute, $value, $fail) {
-                    $user = \App\Models\User::find($value);
+                    $user = User::find($value);
                     if (!$user || !in_array($user->user_type, ['it', 'vendor'])) {
                         $fail('The selected user is not eligible to be an assignee.');
                     }
                 }
             ],
         ]);
-        $ticket = Ticket::findOrFail($ticketId);
         $ticket->assignees()->syncWithoutDetaching([$request->user_id]);
         return redirect()->route('tickets.show', $ticket)->with('success', 'Assignee added.');
     }
 
-    public function removeAssignee($ticketId, $userId)
+    public function removeAssignee(Ticket $ticket, $userId)
     {
-        $ticket = Ticket::findOrFail($ticketId);
         $ticket->assignees()->detach($userId);
         return redirect()->route('tickets.show', $ticket)->with('success', 'Assignee removed.');
     }
@@ -191,7 +187,7 @@ class TicketController extends Controller
         ]);
 
         $data['user_id'] = auth()->id();
-        $data['ticket_status_id'] = 1;
+        $data['ticket_status_id'] = TicketStatus::where('default_status', true)->value('id');
         $ticket = Ticket::create($data);
         return redirect()->route('tickets.mine', $ticket)->with('success', 'Ticket created.');
     }

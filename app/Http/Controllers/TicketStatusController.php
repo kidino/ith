@@ -31,7 +31,14 @@ class TicketStatusController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'color' => 'nullable|string|max:32',
+            'default_status' => 'nullable|boolean',
         ]);
+        $data['default_status'] = $request->has('default_status') ? (bool)$request->default_status : false;
+
+        if ($data['default_status']) {
+            TicketStatus::query()->update(['default_status' => false]);
+        }
+
         TicketStatus::create($data);
         return redirect()->route('ticket-statuses.index')->with('success', 'Status created.');
     }
@@ -51,7 +58,18 @@ class TicketStatusController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'color' => 'nullable|string|max:32',
+            'default_status' => 'nullable|boolean',
         ]);
+
+        $data['default_status'] = $request->has('default_status') ? (bool)$request->default_status : false;
+
+        if ($data['default_status']) {
+            $ostatus = TicketStatus::query()->where('id', '!=', $ticket_status->id)->first();
+            if ($ostatus) {
+                $ostatus->update(['default_status' => false]);
+            }
+        }
+
         $ticket_status->update($data);
         return redirect()->route('ticket-statuses.index')->with('success', 'Status updated.');
     }

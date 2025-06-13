@@ -48,10 +48,9 @@
                                     {{ __('Users') }}
                                 </x-dropdown-link>
 
-                                <x-dropdown-link href="#">
+                                <x-dropdown-link :href="route('vendors.index')">
                                     {{ __('Vendors') }}
                                 </x-dropdown-link>
-
 
                             </x-slot>
                         </x-dropdown>                    

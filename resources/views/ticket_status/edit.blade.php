@@ -13,7 +13,7 @@
                 <form method="POST" action="{{ route('ticket-statuses.update', $ticket_status) }}">
                     @csrf
                     @method('PUT')
-                    <div class="mb-4 flex flex-col md:flex-row md:items-end md:gap-4">
+                    <div class="mb-4 flex flex-col md:flex-row md:items-end md:gap-8">
                         <div class="w-full md:w-1/2 mb-4 md:mb-0">
                             <label class="block font-semibold mb-1">Name</label>
                             <input type="text" name="name" class="w-full rounded border-gray-300" required value="{{ old('name', $ticket_status->name) }}">
@@ -24,6 +24,14 @@
                             <input type="color" name="color" class="w-full rounded border border-gray-300 h-10 p-1" value="{{ old('color', $ticket_status->color) }}">
                             @error('color') <div class="text-red-500 text-xs">{{ $message }}</div> @enderror
                         </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="default_status" value="1" class="rounded border-gray-300"
+                                {{ old('default_status', $ticket_status->default_status) ? 'checked' : '' }}>
+                            <span class="ml-2">Set as default status</span>
+                        </label>
+                        @error('default_status') <div class="text-red-500 text-xs">{{ $message }}</div> @enderror
                     </div>
                     <div>
                         <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Update</button>

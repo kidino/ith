@@ -11,13 +11,13 @@ class VendorController extends Controller
 
     public function index()
     {
-        $vendors = Vendor::all();
-        return view('vendors.index', compact('vendors'));
+        $vendors = Vendor::paginate(20);
+        return view('vendor.index', compact('vendors'));
     }
 
     public function create()
     {
-        return view('vendors.create');
+        return view('vendor.create');
     }
 
     public function store(Request $request)
@@ -31,12 +31,12 @@ class VendorController extends Controller
 
         Vendor::create($request->only('name', 'email', 'phone', 'address'));
 
-        return redirect()->route('vendors.index')->with('success', 'Vendor created successfully.');
+        return redirect()->route('vendor.index')->with('success', 'Vendor created successfully.');
     }
 
     public function edit(Vendor $vendor)
     {
-        return view('vendors.edit', compact('vendor'));
+        return view('vendor.edit', compact('vendor'));
     }
 
     public function update(Request $request, Vendor $vendor)
@@ -50,12 +50,18 @@ class VendorController extends Controller
 
         $vendor->update($request->only('name', 'email', 'phone', 'address'));
 
-        return redirect()->route('vendors.index')->with('success', 'Vendor updated successfully.');
+        return redirect()->route('vendor.index')->with('success', 'Vendor updated successfully.');
     }
 
     public function destroy(Vendor $vendor)
     {
         $vendor->delete();
-        return redirect()->route('vendors.index')->with('success', 'Vendor deleted successfully.');
+        return redirect()->route('vendor.index')->with('success', 'Vendor deleted successfully.');
+    }
+
+    public function show(Vendor $vendor)
+    {
+        $vendor->load('users');
+        return view('vendor.show', compact('vendor'));
     }
 }

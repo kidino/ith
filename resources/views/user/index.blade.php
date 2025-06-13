@@ -40,9 +40,11 @@
                     <h3 class="text-lg font-bold">Users</h3>
                     <a href="{{ route('users.create') }}" class="px-4 py-2 bg-blue-600 text-white rounded text-sm">Add User</a>
                 </div>
-                @if(session('success'))
-                    <div class="mb-4 text-green-600">{{ session('success') }}</div>
-                @endif
+
+                <div class="mb-4 pagination">
+                    {{ $users->links() }}
+                </div>                
+
                 <table class="w-full divide-y divide-gray-200 text-sm">
                     <thead class="bg-gray-50">
                         <tr>
@@ -50,8 +52,7 @@
                             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
                             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Department</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Vendor</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Department / Vendor</th>
                             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                         </tr>
                     </thead>
@@ -62,8 +63,13 @@
                                 <td class="px-4 py-2">{{ $user->name }}</td>
                                 <td class="px-4 py-2">{{ $user->email }}</td>
                                 <td class="px-4 py-2">{{ ucfirst($user->user_type) }}</td>
-                                <td class="px-4 py-2">{{ $user->department?->name }}</td>
-                                <td class="px-4 py-2">{{ $user->vendor?->name }}</td>
+                                <td class="px-4 py-2">
+                                    @if($user->user_type === 'vendor')
+                                        {{ $user->vendor?->name }}
+                                    @elseif($user->user_type === 'user')
+                                        {{ $user->department?->name }}
+                                    @endif
+                                </td>
                                 <td class="px-4 py-2">
                                     <a href="{{ route('users.edit', $user) }}" class="text-yellow-600 hover:underline text-xs">Edit</a>
                                     <form action="{{ route('users.destroy', $user) }}" method="POST" class="inline ml-2" onsubmit="return confirm('Delete this user?')">
@@ -75,14 +81,12 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="px-4 py-2 text-center text-gray-400">No users found.</td>
+                                <td colspan="6" class="px-4 py-2 text-center text-gray-400">No users found.</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
-                <div class="mt-4">
-                    {{ $users->links() }}
-                </div>
+
             </div>
         </div>
     </div>

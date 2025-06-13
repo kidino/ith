@@ -89,7 +89,7 @@
                         </div>
                     </form>
 
-                    <div class="mb-4">
+                    <div class="mb-4 pagination">
                     {{ $tickets->links() }}
                     </div>
 
@@ -142,13 +142,13 @@
                                     </a>
                                 </th>
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                    <a href="{{ sortUrl('department') }}" class="hover:underline flex items-center">
-                                        Department {!! sortIcon('department') !!}
+                                    <a href="{{ sortUrl('user') }}" class="hover:underline flex items-center">
+                                        By {!! sortIcon('user') !!}
                                     </a>
                                 </th>
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                    <a href="{{ sortUrl('user') }}" class="hover:underline flex items-center">
-                                        By {!! sortIcon('user') !!}
+                                    <a href="{{ sortUrl('department') }}" class="hover:underline flex items-center">
+                                        Department {!! sortIcon('department') !!}
                                     </a>
                                 </th>
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
@@ -177,8 +177,8 @@
                                         @endif
                                     </td>
                                     <td class="px-4 py-2">{{ $ticket->category?->name }}</td>
-                                    <td class="px-4 py-2">{{ $ticket->user->department?->name }}</td>
                                     <td class="px-4 py-2">{{ $ticket->user?->name }}</td>
+                                    <td class="px-4 py-2">{{ $ticket->user->department?->name }}</td>
                                     <td class="px-4 py-2">
                                         @foreach($ticket->assignees as $assignee)
                                             <span class="inline-block bg-gray-200 rounded px-2 py-1 text-xs text-gray-700 mr-1 mb-1">{{ $assignee->name }}</span>
