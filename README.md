@@ -19,7 +19,6 @@ It is designed for IT, user, and vendor collaboration, with role-based access an
 
 These features are **not** yet developed
 
-- Automatic status change based on user feedback
 - Kanban view
 
 ## Installation
