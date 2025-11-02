@@ -1,49 +1,52 @@
 {{-- filepath: c:\laragon\www\ith\resources\views\user\index.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Users') }}
-        </h2>
+        <div class="flex items-center justify-between">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                {{ __('Users') }}
+            </h2>
+            <a href="{{ route('users.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded shadow-sm hover:bg-blue-700 text-sm font-semibold">
+                + Add User
+            </a>
+        </div>
     </x-slot>
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white shadow rounded-lg p-6">
+            <div class="bg-white shadow rounded-lg overflow-hidden">
+                <div class="px-6 pt-6 text-gray-900">
+                    {{-- Tabs for user_type --}}
+                    <div class="mb-6 border-b border-gray-200" style="margin-left: -1.5rem; margin-right: -1.5rem; padding-left: 1.5rem; padding-right: 1.5rem;">
+                        @php
+                            $userTypeTab = request('type', 'all');
+                            $tabClasses = function($active) {
+                                return $active
+                                    ? 'inline-block px-4 py-2 text-sm font-semibold text-blue-700 bg-blue-50 border-b-2 border-blue-600 rounded-t transition'
+                                    : 'inline-block px-4 py-2 text-sm font-medium text-gray-500 hover:text-blue-700 hover:bg-gray-50 border-b-2 border-transparent rounded-t transition';
+                            };
+                            $tabTypes = [
+                                'all' => 'All',
+                                'admin' => 'Admin',
+                                'it' => 'IT',
+                                'user' => 'User',
+                                'vendor' => 'Vendor',
+                            ];
+                        @endphp
+                        <nav class="flex space-x-2" aria-label="Tabs">
+                            @foreach($tabTypes as $typeKey => $typeLabel)
+                                <a href="{{ route('users.index', array_merge(request()->except('page'), ['type' => $typeKey !== 'all' ? $typeKey : null])) }}"
+                                   class="{{ $tabClasses($userTypeTab === $typeKey) }}">
+                                    {{ $typeLabel }}
+                                </a>
+                            @endforeach
+                        </nav>
+                    </div>
 
-                {{-- Tabs for user_type --}}
-                @php
-                    $userTypeTab = request('type', 'all');
-                    $tabClasses = function($active) {
-                        return $active
-                            ? 'inline-block px-4 py-2 text-sm font-semibold text-blue-700 bg-blue-50 border-b-2 border-blue-600 rounded-t transition'
-                            : 'inline-block px-4 py-2 text-sm font-medium text-gray-500 hover:text-blue-700 hover:bg-gray-50 border-b-2 border-transparent rounded-t transition';
-                    };
-                    $tabTypes = [
-                        'all' => 'All',
-                        'admin' => 'Admin',
-                        'it' => 'IT',
-                        'user' => 'User',
-                        'vendor' => 'Vendor',
-                    ];
-                @endphp
-                <div class="mb-6 border-b border-gray-200">
-                    <nav class="flex space-x-2" aria-label="Tabs">
-                        @foreach($tabTypes as $typeKey => $typeLabel)
-                            <a href="{{ route('users.index', array_merge(request()->except('page'), ['type' => $typeKey !== 'all' ? $typeKey : null])) }}"
-                               class="{{ $tabClasses($userTypeTab === $typeKey) }}">
-                                {{ $typeLabel }}
-                            </a>
-                        @endforeach
-                    </nav>
+                    @if($users->hasPages())
+                        <div class="mb-4 pagination">
+                            {{ $users->links() }}
+                        </div>
+                    @endif
                 </div>
-
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-bold">Users</h3>
-                    <a href="{{ route('users.create') }}" class="px-4 py-2 bg-blue-600 text-white rounded text-sm">Add User</a>
-                </div>
-
-                <div class="mb-4 pagination">
-                    {{ $users->links() }}
-                </div>                
 
                 <table class="w-full divide-y divide-gray-200 text-sm">
                     <thead class="bg-gray-50">
@@ -86,7 +89,6 @@
                         @endforelse
                     </tbody>
                 </table>
-
             </div>
         </div>
     </div>

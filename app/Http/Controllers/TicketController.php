@@ -10,15 +10,26 @@ use App\Models\User;
 use App\Rules\ValidAssignee;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Database\Eloquent\Builder;
 use App\Http\Controllers\Traits\ManagesTicketSorting;
 use App\Models\Category;
 use App\Models\Department;
 use App\Models\Vendor;
+use App\Notifications\TicketCreated;
+use App\Notifications\TicketUpdated;
+use App\Services\TicketAutomationService;
 
 class TicketController extends Controller
 {
     use ManagesTicketSorting;
+
+    protected TicketAutomationService $automationService;
+
+    public function __construct(TicketAutomationService $automationService)
+    {
+        $this->automationService = $automationService;
+    }
 
     public function index()
     {
@@ -69,8 +80,25 @@ class TicketController extends Controller
             'ticket_status_id' => 'required|exists:ticket_statuses,id',
         ]);
 
+        // Check if trying to set to resolved - only admin can do this
+        $newStatus = TicketStatus::find($request->ticket_status_id);
+        if ($newStatus && $newStatus->name === 'resolved') {
+            Gate::authorize('resolveTicket', $ticket);
+        }
+
+        $oldStatus = $ticket->status->name ?? 'unknown';
         $ticket->ticket_status_id = $request->ticket_status_id;
         $ticket->save();
+        
+        // Load relationships for notification
+        $ticket->load(['user', 'category', 'status', 'assignees']);
+        
+        // Apply automation rules
+        $this->automationService->handleStatusChange($ticket, $oldStatus, auth()->user());
+        
+        // Send notifications to relevant users
+        $recipients = $this->getNotificationRecipients($ticket, 'updated');
+        Notification::send($recipients, new TicketUpdated($ticket, 'status'));
 
         return redirect()->route('tickets.show', $ticket)->with('success', 'Status updated.');
     }
@@ -86,10 +114,18 @@ class TicketController extends Controller
             'user_id' => auth()->id(),
             'comment' => $request->comment,
         ]);
+        
+        // Load relationships for notification
+        $ticket->load(['user', 'category', 'status', 'assignees']);
+        
+        // Apply automation rules
+        $this->automationService->handleCommentAdded($ticket, auth()->user());
+        
+        // Send notifications to relevant users
+        $recipients = $this->getNotificationRecipients($ticket, 'updated');
+        Notification::send($recipients, new TicketUpdated($ticket, 'comment'));
 
-
-    return redirect()->route('tickets.show', $ticket)->with('success', 'Comment added.');    
-
+        return redirect()->route('tickets.show', $ticket)->with('success', 'Comment added.');    
     }
 
     public function addAssignee(Request $request, Ticket $ticket)
@@ -102,14 +138,26 @@ class TicketController extends Controller
                 new ValidAssignee, // Use the new custom rule
             ],
         ]);
+        
+        $assignee = \App\Models\User::findOrFail($request->user_id);
         $ticket->assignees()->syncWithoutDetaching([$request->user_id]);
+        
+        // Apply automation rules
+        $this->automationService->handleAssigneeAdded($ticket, $assignee);
+        
         return redirect()->route('tickets.show', $ticket)->with('success', 'Assignee added.');
     }
 
     public function removeAssignee(Ticket $ticket, $userId)
     {
         Gate::authorize('assignUser', $ticket);
+        
+        $removedAssignee = \App\Models\User::findOrFail($userId);
         $ticket->assignees()->detach($userId);
+        
+        // Apply automation rules
+        $this->automationService->handleAssigneeRemoved($ticket, $removedAssignee);
+        
         return redirect()->route('tickets.show', $ticket)->with('success', 'Assignee removed.');
     }
 
@@ -165,6 +213,14 @@ class TicketController extends Controller
         $data['user_id'] = auth()->id();
         $data['ticket_status_id'] = TicketStatus::where('default_status', true)->value('id');
         $ticket = Ticket::create($data);
+        
+        // Load relationships for notification
+        $ticket->load(['user', 'category']);
+        
+        // Send notifications to relevant users
+        $recipients = $this->getNotificationRecipients($ticket, 'created');
+        Notification::send($recipients, new TicketCreated($ticket));
+        
         return redirect()->route('tickets.mine', $ticket)->with('success', 'Ticket created.');
     }
 
@@ -177,7 +233,45 @@ class TicketController extends Controller
         Gate::authorize('updateCategory', $ticket);
         $ticket->category_id = $request->category_id;
         $ticket->save();
+        
+        // Load relationships for notification
+        $ticket->load(['user', 'category', 'status', 'assignees']);
+        
+        // Send notifications to relevant users
+        $recipients = $this->getNotificationRecipients($ticket, 'updated');
+        Notification::send($recipients, new TicketUpdated($ticket, 'category'));
 
         return redirect()->route('tickets.show', $ticket)->with('success', 'Category updated.');
+    }
+
+    /**
+     * Get users who should receive notifications for ticket events
+     */
+    private function getNotificationRecipients(Ticket $ticket, $event = 'created')
+    {
+        $recipients = collect();
+        
+        // Always notify IT and admin users
+        $recipients = $recipients->merge(
+            User::whereIn('user_type', ['it', 'admin'])->get()
+        );
+        
+        if ($event === 'updated') {
+            // Also notify the ticket creator (if not IT/admin)
+            if (!in_array($ticket->user->user_type, ['it', 'admin'])) {
+                $recipients->push($ticket->user);
+            }
+            
+            // Notify assigned users
+            $recipients = $recipients->merge($ticket->assignees);
+        }
+        
+        // Remove duplicates and exclude the current user (unless they're the ticket creator on updates)
+        return $recipients->unique('id')->filter(function($user) use ($event, $ticket) {
+            if ($event === 'updated' && $user->id === $ticket->user_id) {
+                return true; // Always notify ticket creator on updates
+            }
+            return $user->id !== auth()->id();
+        });
     }
 }

@@ -74,4 +74,10 @@ class TicketPolicy
         // Only Admin or IT can update category
         return in_array($user->user_type, ['admin', 'it']);
     }
+
+    public function resolveTicket(User $user, Ticket $ticket)
+    {
+        // Only Admin can mark tickets as resolved
+        return $user->user_type === 'admin';
+    }
 }
