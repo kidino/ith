@@ -54,6 +54,50 @@ class TicketController extends Controller
         return view('ticket.index', compact('tickets', 'activeTab', 'viewStatuses', 'viewCategories'));
     }
 
+    public function kanban()
+    {
+        $userType = Auth::user()->user_type ?? null;
+        if ($userType === 'user') {
+            return redirect()->route('tickets.mine');
+        }
+        if ($userType === 'vendor') {
+            return redirect()->route('tickets.tasks');
+        }
+
+        Gate::authorize('viewAny', Ticket::class);
+
+        // Get all ticket statuses for columns in logical workflow order
+        $statusOrder = ['new', 'in_progress', 'pending_vendor', 'pending_user', 'resolved', 'closed', 'reopen'];
+        $statuses = TicketStatus::all()->sortBy(function($status) use ($statusOrder) {
+            $index = array_search($status->name, $statusOrder);
+            return $index !== false ? $index : 999; // Put unknown statuses at the end
+        });
+        
+        // Get tickets grouped by status
+        $ticketsByStatus = [];
+        foreach ($statuses as $status) {
+            $tickets = Ticket::with(['status', 'category', 'user.department', 'assignees'])
+                ->where('ticket_status_id', $status->id)
+                ->filterByCategory(request('category'));
+            
+            // Apply ownership filters
+            if (request('ownership') == 'my_tickets') {
+                $tickets->where('user_id', Auth::id());
+            } elseif (request('ownership') == 'assigned_to_me') {
+                $tickets->whereHas('assignees', function ($query) {
+                    $query->where('user_id', Auth::id());
+                });
+            }
+            
+            $tickets = $tickets->orderBy('updated_at', 'desc')->get();
+            $ticketsByStatus[$status->id] = $tickets;
+        }
+
+        $viewCategories = Category::orderBy('name')->pluck('name', 'id');
+        
+        return view('ticket.kanban', compact('statuses', 'ticketsByStatus', 'viewCategories'));
+    }
+
     public function show(Request $request, Ticket $ticket)
     {
         Gate::authorize('view', $ticket);

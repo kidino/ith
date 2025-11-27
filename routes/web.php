@@ -24,11 +24,11 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::Resource('tickets', TicketController::class)->except(['update', 'destroy']);
     Route::get('/tickets', [TicketController::class, 'index'])->name('tickets.index');
+    Route::get('/tickets/kanban', [TicketController::class, 'kanban'])->name('tickets.kanban');
     Route::get('/tickets/d/mine', [TicketController::class, 'myTickets'])->name('tickets.mine');
     Route::get('/tickets/d/tasks', [TicketController::class, 'myTasks'])->name('tickets.tasks');
-    Route::post('/tickets', [TicketController::class, 'store'])->name('tickets.store');
+    Route::Resource('tickets', TicketController::class)->except(['update', 'destroy']);
     Route::patch('/tickets/{ticket}/category', [TicketController::class, 'updateCategory'])->name('tickets.updateCategory');
 
     Route::get('/users/autocomplete', [UserController::class, 'autocomplete'])->name('users.autocomplete');

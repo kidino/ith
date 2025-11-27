@@ -6,12 +6,33 @@
             </h2>
             @php
                 $userType = Auth::user()->user_type ?? null;
+                $currentView = request('view', 'list'); // Default to list view
             @endphp
-            @if($userType !== 'vendor')
-                <a href="{{ route('tickets.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded shadow-sm hover:bg-blue-700 text-sm font-semibold">
-                    + New Ticket
-                </a>
-            @endif
+            <div class="flex items-center space-x-3">
+                <!-- View Toggle -->
+                <div class="inline-flex rounded-md shadow-sm" role="group">
+                    <a href="{{ request()->fullUrlWithQuery(['view' => 'list']) }}" 
+                       class="inline-flex items-center px-3 py-2 text-sm font-medium border border-gray-200 rounded-l-lg {{ $currentView === 'list' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 hover:bg-gray-50' }}">
+                        <!-- List Icon -->
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                        </svg>
+                    </a>
+                    <a href="{{ route('tickets.kanban') }}" 
+                       class="inline-flex items-center px-3 py-2 text-sm font-medium border border-gray-200 rounded-r-lg {{ request()->routeIs('tickets.kanban') ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 hover:bg-gray-50' }}">
+                        <!-- Kanban Icon -->
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 0v10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path>
+                        </svg>
+                    </a>
+                </div>
+
+                @if($userType !== 'vendor')
+                    <a href="{{ route('tickets.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded shadow-sm hover:bg-blue-700 text-sm font-semibold">
+                        + New Ticket
+                    </a>
+                @endif
+            </div>
         </div>
     </x-slot>
 
